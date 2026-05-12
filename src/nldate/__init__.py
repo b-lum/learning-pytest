@@ -98,7 +98,11 @@ def parse(s: str, today: date | None = None) -> date:
             new_date = reference_date
 
     else:
-        if "yesterday" in s_lower:
+        if "day after tomorrow" in s_lower:
+            reference = today + relativedelta(days=2)
+        elif "day before yesterday" in s_lower:
+            reference = today + relativedelta(days=-2)
+        elif "yesterday" in s_lower:
             reference = today + relativedelta(days=-1)
         elif "tomorrow" in s_lower:
             reference = today + relativedelta(days=1)
