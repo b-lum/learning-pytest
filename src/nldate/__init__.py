@@ -1,14 +1,32 @@
 import re
 from datetime import date
+
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
-
 
 WORD_TO_NUM = {
     "a": 1,
     "an": 1,
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
+
+DAYS_OF_WEEK = {
+    "monday": 0,
+    "tuesday": 1,
+    "wednesday": 2,
+    "thursday": 3,
+    "friday": 4,
+    "saturday": 5,
+    "sunday": 6,
 }
 
 
@@ -37,7 +55,6 @@ def parse(s: str, today: date | None = None) -> date:
     if "before" in s or "ago" in s:
         multiplier = -1
 
-    # handle word numbers like "two weeks"
     s_normalized = s
     for word, num in WORD_TO_NUM.items():
         s_normalized = re.sub(
@@ -84,21 +101,19 @@ def parse(s: str, today: date | None = None) -> date:
         elif "tomorrow" in s:
             reference = today + relativedelta(days=1)
         elif "next" in s:
-            days_of_week = {
-                "monday": 0,
-                "tuesday": 1,
-                "wednesday": 2,
-                "thursday": 3,
-                "friday": 4,
-                "saturday": 5,
-                "sunday": 6,
-            }
             day_match = re.search(r"next (\w+)", s.lower())
-            target_day = days_of_week[day_match.group(1)]  # type: ignore
+            target_day = DAYS_OF_WEEK[day_match.group(1)]  # type: ignore
             days_ahead = target_day - today.weekday()
             if days_ahead <= 0:
                 days_ahead += 7
             return today + relativedelta(days=days_ahead)
+        elif "last" in s:
+            day_match = re.search(r"last (\w+)", s.lower())
+            target_day = DAYS_OF_WEEK[day_match.group(1)]  # type: ignore
+            days_behind = today.weekday() - target_day
+            if days_behind <= 0:
+                days_behind += 7
+            return today + relativedelta(days=-days_behind)
         else:
             reference = today
 
