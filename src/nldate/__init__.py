@@ -125,6 +125,11 @@ def parse(s: str, today: date | None = None) -> date:
 
         if matches:
             new_date = _apply_delta(reference, matches, multiplier)
+        elif reference == today and not any(
+            word in s_lower
+            for word in ["today", "tomorrow", "yesterday", "next", "last"]
+        ):
+            raise ValueError(f"Could not parse date string: {s!r}")
         else:
             new_date = reference
 
