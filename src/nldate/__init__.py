@@ -5,12 +5,22 @@ from dateutil.relativedelta import relativedelta
 
 
 WORD_TO_NUM = {
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
 }
 
 
-def _apply_delta(reference: date, matches: list[tuple[str, str]], multiplier: int) -> date:
+def _apply_delta(
+    reference: date, matches: list[tuple[str, str]], multiplier: int
+) -> date:
     delta = relativedelta()
     for num_str, unit in matches:
         num = int(num_str)
@@ -30,20 +40,36 @@ def parse(s: str, today: date | None = None) -> date:
         today = date.today()
 
     multiplier = 1
-    if "before" in s:
+    if "before" in s or "ago" in s:
         multiplier = -1
 
     # handle word numbers like "two weeks"
     s_normalized = s
     for word, num in WORD_TO_NUM.items():
-        s_normalized = re.sub(rf"\b{word}\b", str(num), s_normalized, flags=re.IGNORECASE)
+        s_normalized = re.sub(
+            rf"\b{word}\b", str(num), s_normalized, flags=re.IGNORECASE
+        )
 
     matches = re.findall(r"(\d+)\s+(days?|weeks?|months?|years?)", s_normalized)
 
-    months = {"january", "february", "march", "april", "may", "june",
-              "july", "august", "september", "october", "november", "december"}
+    months = {
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+    }
 
-    has_specific_date = any(month in s.lower() for month in months) or bool(re.search(r"\b\d{4}\b", s))
+    has_specific_date = any(month in s.lower() for month in months) or bool(
+        re.search(r"\b\d{4}\b", s)
+    )
 
     if has_specific_date:
         date_match = re.search(r"(before|after)(.*)", s, re.IGNORECASE)
@@ -64,8 +90,15 @@ def parse(s: str, today: date | None = None) -> date:
         elif "tomorrow" in s:
             reference = today + relativedelta(days=1)
         elif "next" in s:
-            days_of_week = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
-                            "friday": 4, "saturday": 5, "sunday": 6}
+            days_of_week = {
+                "monday": 0,
+                "tuesday": 1,
+                "wednesday": 2,
+                "thursday": 3,
+                "friday": 4,
+                "saturday": 5,
+                "sunday": 6,
+            }
             day_match = re.search(r"next (\w+)", s.lower())
             target_day = days_of_week[day_match.group(1)]  # type: ignore
             days_ahead = target_day - today.weekday()
