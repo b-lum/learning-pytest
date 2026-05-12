@@ -51,11 +51,13 @@ def parse(s: str, today: date | None = None) -> date:
     if today is None:
         today = date.today()
 
+    s_lower = s.lower()  # add this
+
     multiplier = 1
-    if "before" in s or "ago" in s:
+    if "before" in s_lower or "ago" in s_lower:
         multiplier = -1
 
-    s_normalized = s
+    s_normalized = s_lower  # use s_lower here
     for word, num in WORD_TO_NUM.items():
         s_normalized = re.sub(
             rf"\b{word}\b", str(num), s_normalized, flags=re.IGNORECASE
@@ -78,16 +80,16 @@ def parse(s: str, today: date | None = None) -> date:
         "december",
     }
 
-    has_specific_date = any(month in s.lower() for month in months) or bool(
+    has_specific_date = any(month in s_lower for month in months) or bool(
         re.search(r"\b\d{4}\b", s)
     )
 
     if has_specific_date:
-        date_match = re.search(r"(before|after)(.*)", s, re.IGNORECASE)
+        date_match = re.search(r"(before|after)(.*)", s_lower, re.IGNORECASE)
         if date_match:
             date_str = date_match.group(2).strip()
         else:
-            date_str = s
+            date_str = s_lower
         reference_date = parser.parse(date_str).date()
 
         if matches:
@@ -96,19 +98,19 @@ def parse(s: str, today: date | None = None) -> date:
             new_date = reference_date
 
     else:
-        if "yesterday" in s:
+        if "yesterday" in s_lower:
             reference = today + relativedelta(days=-1)
-        elif "tomorrow" in s:
+        elif "tomorrow" in s_lower:
             reference = today + relativedelta(days=1)
-        elif "next" in s:
-            day_match = re.search(r"next (\w+)", s.lower())
+        elif "next" in s_lower:
+            day_match = re.search(r"next (\w+)", s_lower)
             target_day = DAYS_OF_WEEK[day_match.group(1)]  # type: ignore
             days_ahead = target_day - today.weekday()
             if days_ahead <= 0:
                 days_ahead += 7
             return today + relativedelta(days=days_ahead)
-        elif "last" in s:
-            day_match = re.search(r"last (\w+)", s.lower())
+        elif "last" in s_lower:
+            day_match = re.search(r"last (\w+)", s_lower)
             target_day = DAYS_OF_WEEK[day_match.group(1)]  # type: ignore
             days_behind = today.weekday() - target_day
             if days_behind <= 0:
